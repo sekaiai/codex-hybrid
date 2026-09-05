@@ -1,12 +1,12 @@
 ---
 name: hybrid-dev
-description: 用于由 Sol 负责协调、Luna 负责边界明确的实现、GLM 负责成本可控的独立工作的多代理编码任务。用户提出 Sol-Luna-GLM 协作、混合执行或要求明确文件所有权的并行编码时触发。
+description: 用于由 Sol 负责协调、Luna 负责边界明确的实现，并由 GLM 或 OpenCode 负责独立工作的多代理编码任务。用户提出混合执行或要求明确文件所有权的并行编码时触发。
 ---
 # codex-hybrid:managed
 
 # 混合开发（Hybrid Dev）
 
-将本技能作为 Sol–Luna–GLM 协作配置档案的执行契约。
+将本技能作为 Sol–Luna–GLM/OpenCode 协作配置档案的执行契约。
 
 ## 必需的任务简报
 
@@ -24,7 +24,8 @@ description: 用于由 Sol 负责协调、Luna 负责边界明确的实现、GLM
 
 - Sol（gpt-5.6-sol）负责拆解、契约、集成、最终评审，以及停止/升级汇报决策。
 - Luna（gpt-5.6-luna）负责边界明确的实现、测试和低风险重构。
-- GLM（通过 zai_coding_plan 使用 glm-5.2）在任务适合外部服务提供商时，负责独立实现、文档、测试生成或第二意见评审。
+- GLM（通过 zai_coding_plan 使用配置的 GLM 模型）在 GLM 后端启用时，负责独立实现、文档、测试生成或第二意见评审。
+- OpenCode worker（通过独立 OpenCode CLI 配置）在 OpenCode 后端启用时，负责独立实现、文档、测试生成或第二意见评审；返回结果后由 Sol 重新检查并整合。
 - 密钥不得出现在提示词、日志、提交记录或执行代理负责的文件中。
 
 ## 状态机

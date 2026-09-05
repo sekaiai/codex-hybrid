@@ -59,7 +59,7 @@ Luna 执行代理   GLM 执行代理       │
 - 不自行实现一个新的代理调度器、队列服务或 IDE 插件。
 - 不承诺 GLM 与 OpenAI 模型在所有工具调用、上下文长度和推理参数上完全等价。
 - 不用提示词保证并发写入安全；并发安全必须由文件所有权和执行顺序保证。
-- 不自动安装 Claude Code、OpenCode 或其他编码工具。
+- 不自动安装无关编码工具；OpenCode 是 `gpt-opencode` 的明确运行依赖，缺失时由安装器通过官方渠道安装。
 - 不在没有明确策略的情况下，静默把 GLM 任务切换到更贵或行为不同的模型。
 
 ### 1.3 完成判定
@@ -409,7 +409,7 @@ model_reasoning_effort 的最终允许值必须由安装器针对本地 Codex �
 Sol 不必额外创建执行代理 TOML。安装器提供两种模式：
 
 1. 默认模式：不改用户当前主模型，只安装服务提供商、执行代理和技能；用户通过 Codex 的模型选择使用 Sol。
-2. 显式模式：用户传入 --set-default 后，生成独立的 `sol-luna.config.toml` 配置档案；不重复写入主 `config.toml` 的顶层 model 键：
+2. 启动模式：安装器始终生成独立的 `sol-luna.config.toml` 配置档案；不重复写入主 `config.toml` 的顶层 model 键：
 
    ~~~toml
    model = "gpt-5.6-sol"
@@ -425,16 +425,16 @@ model_reasoning_effort = "xhigh"
 ~~~bash
 # 推荐：先下载后审阅
 curl -fsSLO https://raw.githubusercontent.com/ACCOUNT/codex-hybrid/main/install.sh
-bash ./install.sh --version v0.2.0
+bash ./install.sh --version v0.3.0
 
 # 一键安装
-curl -fsSL https://raw.githubusercontent.com/ACCOUNT/codex-hybrid/v0.2.0/install.sh | bash -s -- --version v0.2.0
+curl -fsSL https://raw.githubusercontent.com/ACCOUNT/codex-hybrid/v0.3.0/install.sh | bash -s -- --version v0.3.0
 
 # 只检查，不写入
 bash ./install.sh --dry-run
 
-# 明确允许把 Sol 设为主模型
-bash ./install.sh --set-default
+# 安装 Sol profile、两个 launcher 和 OpenCode 配置
+bash ./install.sh
 
 # 可选：覆盖 GLM 执行代理模型
 bash ./install.sh --glm-model glm-4.7
@@ -606,7 +606,7 @@ bash ./tests/provider-smoke.sh --confirm-network --model glm-5.2
 - 直接使用 npx @z_ai/coding-helper：它适合配置智谱工具接入，但不负责本方案的 Sol → 执行代理 → 评审编排。
 - 让两个模型都直接修改同一工作目录：吞吐看似更高，但无法可靠解决共享文件覆盖和整合责任问题。
 - 把 API 密钥直接写入 config.toml：实现简单，但会扩大备份、日志和误提交的泄露面。
-- 强制安装器覆盖全局默认模型：操作简单，但会破坏用户已有配置，因此改为默认保留、--set-default 显式启用。
+- 强制安装器覆盖全局默认模型：操作简单，但会破坏用户已有配置，因此改为始终生成独立 profile、由 `gpt-glm` 显式选用。
 
 ### 选择原因
 

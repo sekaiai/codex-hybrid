@@ -33,14 +33,26 @@ require_cmd mv
 require_cmd stat
 codex_home_dir="${CODEX_HOME:-$HOME/.codex}"
 skills_dir="${CODEX_HYBRID_SKILLS_DIR:-$HOME/.agents/skills}"
+default_commands_dir="$HOME/.local/bin"
+if command -v codex >/dev/null 2>&1; then
+  codex_command_dir="$(dirname -- "$(command -v codex)")"
+  [[ -w "$codex_command_dir" ]] && default_commands_dir="$codex_command_dir"
+fi
+commands_dir="${CODEX_HYBRID_BIN_DIR:-$default_commands_dir}"
 config_path="$codex_home_dir/config.toml"
 secret_path="$codex_home_dir/secrets/zai_api_key"
 helper_path="$codex_home_dir/bin/codex-hybrid-token"
 profile_path="$codex_home_dir/sol-luna.config.toml"
+opencode_profile_path="$codex_home_dir/sol-opencode.config.toml"
 luna_agent_path="$codex_home_dir/agents/luna_worker.toml"
 glm_agent_path="$codex_home_dir/agents/glm_worker.toml"
 skill_path="$skills_dir/hybrid-dev"
 manifest_path="$codex_home_dir/codex-hybrid.manifest"
+opencode_config_path="$codex_home_dir/opencode/opencode.json"
+opencode_marker_path="$codex_home_dir/opencode/.codex-hybrid-managed"
+opencode_worker_path="$codex_home_dir/bin/codex-hybrid-opencode-worker"
+gpt_glm_path="$commands_dir/gpt-glm"
+gpt_opencode_path="$commands_dir/gpt-opencode"
 
 [[ -d "$codex_home_dir" ]] || die "CODEX_HOME 不存在：$codex_home_dir"
 lock_path="$codex_home_dir/.codex-hybrid.install.lock"
@@ -78,7 +90,22 @@ move_managed_file "$luna_agent_path" "luna_worker.toml"
 move_managed_file "$glm_agent_path" "glm_worker.toml"
 move_managed_file "$helper_path" "codex-hybrid-token"
 move_managed_file "$profile_path" "sol-luna.config.toml"
+move_managed_file "$opencode_profile_path" "sol-opencode.config.toml"
 move_managed_file "$manifest_path" "codex-hybrid.manifest"
+move_managed_file "$gpt_glm_path" "gpt-glm"
+move_managed_file "$gpt_opencode_path" "gpt-opencode"
+move_managed_file "$opencode_worker_path" "codex-hybrid-opencode-worker"
+
+if [[ -f "$opencode_config_path" ]]; then
+  if file_has_marker "$opencode_marker_path" "$hybrid_managed_marker"; then
+    mv "$opencode_config_path" "$backup_root/opencode.json"
+    mv "$opencode_marker_path" "$backup_root/opencode-managed-marker"
+    log "已将 $opencode_config_path 移动到备份目录"
+  else
+    warn "保留未受管文件不变：$opencode_config_path"
+  fi
+fi
+move_managed_file "$opencode_marker_path" "opencode-managed-marker"
 
 if [[ -d "$skill_path" ]]; then
   if file_has_marker "$skill_path/SKILL.md" "$hybrid_managed_marker"; then

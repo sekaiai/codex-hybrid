@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-hybrid_version="0.2.0"
+hybrid_version="0.3.0"
 hybrid_provider_id="zai_coding_plan"
+hybrid_opencode_provider_id="zai-coding-plan"
 hybrid_glm_model="glm-5.2"
 hybrid_sol_model="gpt-5.6-sol"
 hybrid_luna_model="gpt-5.6-luna"
@@ -35,9 +36,12 @@ is_test_mode() {
 }
 
 check_platform() {
-  if [[ "$(uname -s)" != "Darwin" ]] && ! is_test_mode; then
-    die "此安装器仅面向 macOS；只有隔离测试才能设置 CODEX_HYBRID_TEST_MODE=1"
-  fi
+  case "$(uname -s)" in
+    Darwin|Linux) ;;
+    *)
+      is_test_mode || die "仅支持 macOS、Linux 和 Windows WSL；Windows 原生 PowerShell/CMD 不受支持"
+      ;;
+  esac
 }
 
 absolute_path() {

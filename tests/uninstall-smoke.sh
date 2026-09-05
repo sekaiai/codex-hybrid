@@ -8,6 +8,7 @@ export CODEX_HYBRID_TEST_MODE=1
 export HOME="$sandbox_dir/home"
 export CODEX_HOME="$sandbox_dir/codex"
 export CODEX_HYBRID_SKILLS_DIR="$CODEX_HOME/skills"
+export CODEX_HYBRID_BIN_DIR="$sandbox_dir/bin"
 export ZAI_API_KEY="test-key-value"
 mkdir -p "$HOME"
 
@@ -18,6 +19,10 @@ bash "$root_dir/uninstall.sh"
 [[ ! -e "$CODEX_HOME/agents/glm_worker.toml" ]]
 [[ ! -e "$CODEX_HOME/skills/hybrid-dev" ]]
 [[ ! -e "$CODEX_HOME/sol-luna.config.toml" ]]
+[[ ! -e "$CODEX_HYBRID_BIN_DIR/gpt-glm" ]]
+[[ ! -e "$CODEX_HYBRID_BIN_DIR/gpt-opencode" ]]
+[[ ! -e "$CODEX_HOME/opencode/opencode.json" ]]
+[[ ! -e "$CODEX_HOME/opencode/.codex-hybrid-managed" ]]
 ! rg -q 'zai_coding_plan' "$CODEX_HOME/config.toml"
 [[ -n "$(find "$CODEX_HOME/backups/codex-hybrid-uninstall" -name zai_api_key -print -quit)" ]]
 

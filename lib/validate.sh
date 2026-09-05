@@ -89,7 +89,42 @@ validate_codex_home() {
 
   if [[ "$require_codex" == "1" ]] && command -v codex >/dev/null 2>&1; then
     CODEX_HOME="$codex_home_path" codex --strict-config --help >/dev/null
+    if [[ -f "$codex_home_path/sol-luna.config.toml" ]]; then
+      CODEX_HOME="$codex_home_path" codex --profile sol-luna --strict-config --help >/dev/null
+    fi
+    if [[ -f "$codex_home_path/sol-opencode.config.toml" ]]; then
+      CODEX_HOME="$codex_home_path" codex --profile sol-opencode --strict-config --help >/dev/null
+    fi
   elif [[ "$require_codex" == "1" ]]; then
     warn "未安装 Codex，跳过 Codex 配置解析验证"
   fi
+}
+
+validate_opencode_config() {
+  local config_path="$1"
+  local model_name="$2"
+  validate_json_file "$config_path"
+  rg -F -q "\"model\": \"$hybrid_opencode_provider_id/$model_name\"" "$config_path" ||
+    die "OpenCode 模型未正确配置"
+  rg -F -q "\"enabled_providers\": [\"$hybrid_opencode_provider_id\"]" "$config_path" ||
+    die "OpenCode 服务提供商未正确限制"
+  rg -F -q '"disabled_providers": []' "$config_path" ||
+    die "OpenCode 禁用列表未正确重置"
+  ! rg -q 'test-key-value|sk-[A-Za-z0-9]' "$config_path" ||
+    die "OpenCode 配置中不得包含 API 密钥"
+}
+
+validate_opencode_cli() {
+  local config_path="$1"
+  local secret_value="$2"
+  command -v opencode >/dev/null 2>&1 || return 0
+  local config_content
+  config_content="$(<"$config_path")"
+  (
+    cd "$(dirname -- "$config_path")"
+    ZHIPU_API_KEY="$secret_value" \
+      OPENCODE_CONFIG="$config_path" \
+      OPENCODE_CONFIG_CONTENT="$config_content" \
+      opencode --pure debug config >/dev/null
+  ) || die "当前 OpenCode CLI 无法解析生成的独立配置"
 }
