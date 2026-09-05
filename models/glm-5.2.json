@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "kind": "codex-hybrid-model-profile",
+  "model": "glm-5.2",
+  "provider_id": "zai_coding_plan",
+  "base_url": "https://open.bigmodel.cn/api/coding/paas/v4",
+  "wire_api": "responses",
+  "reasoning_effort": "high",
+  "catalog_injection": "opt-in",
+  "catalog_injection_reason": "Codex 模型目录字段随版本发布变化；请通过 --catalog-path 使用与当前 Codex 版本匹配的官方模型目录。"
+}

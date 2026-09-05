@@ -1,0 +1,5 @@
+.DS_Store
+.codex-hybrid-test/
+*.key
+
+/.omx

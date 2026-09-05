@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "package_version": "0.2.0",
+  "provider_id": "zai_coding_plan",
+  "provider_name": "智谱 Coding Plan",
+  "base_url": "https://open.bigmodel.cn/api/coding/paas/v4",
+  "wire_api": "responses",
+  "default_model": "glm-5.2",
+  "catalog_mode": "optional",
+  "network_compatibility": "requires_explicit_smoke_test",
+  "catalog_note": "Codex 模型目录与版本相关。安装器默认不注入模型目录；只有使用 --catalog-path 显式传入并经过当前 Codex 版本验证的目录时才会启用。"
+}
