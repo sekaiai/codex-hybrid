@@ -1,12 +1,12 @@
 ---
 name: hybrid-dev
-description: 用于由 Sol 负责协调、Luna 负责边界明确的实现，并由 GLM 或 OpenCode 负责独立工作的多代理编码任务。用户提出混合执行或要求明确文件所有权的并行编码时触发。
+description: 用于由 Sol 负责协调、Luna 负责默认执行，并按需调用已配置的 Claude Code 或 OpenCode 的多代理编码任务。用户提出混合执行或要求明确文件所有权的并行编码时触发。
 ---
 # codex-hybrid:managed
 
 # 混合开发（Hybrid Dev）
 
-将本技能作为 Sol–Luna–GLM/OpenCode 协作配置档案的执行契约。
+将本技能作为 Codex CLI 主控的 Sol–Luna–Claude Code/OpenCode 协作契约。Provider、订阅、API Key 和模型切换由用户在各 CLI 中自行管理；本技能不要求写入或修改任何 Provider 配置。
 
 ## 必需的任务简报
 
@@ -22,11 +22,28 @@ description: 用于由 Sol 负责协调、Luna 负责边界明确的实现，并
 
 ## 路由规则
 
-- Sol（gpt-5.6-sol）负责拆解、契约、集成、最终评审，以及停止/升级汇报决策。
-- Luna（gpt-5.6-luna）负责边界明确的实现、测试和低风险重构。
-- GLM（通过 zai_coding_plan 使用配置的 GLM 模型）在 GLM 后端启用时，负责独立实现、文档、测试生成或第二意见评审。
-- OpenCode worker（通过独立 OpenCode CLI 配置）在 OpenCode 后端启用时，负责独立实现、文档、测试生成或第二意见评审；返回结果后由 Sol 重新检查并整合。
+- Sol（gpt-5.6-sol）负责需求理解、拆解、任务契约、调度、整合、最终评审，以及停止/升级汇报决策。
+- Luna（gpt-5.6-luna）是默认执行代理，负责边界明确的实现、测试、文档和低风险重构。
+- Claude Code 是可选的外部执行代理。需要时由 Sol 在当前项目目录手动调用 `claude`；它使用用户已经配置好的模型和订阅。
+- OpenCode 是可选的外部执行代理。需要时由 Sol 在当前项目目录手动调用 `opencode`；它使用用户已经配置好的模型和订阅。
+- GLM 不作为 Codex Provider 的安装前提。GLM 可以通过 Claude Code 或 OpenCode 的现有配置使用。
 - 密钥不得出现在提示词、日志、提交记录或执行代理负责的文件中。
+
+## 默认调度顺序
+
+1. Sol 先判断任务边界、风险和文件所有权。
+2. 默认把可独立完成的小任务交给 Luna。
+3. 只有需要更大主体实现或用户明确指定时，才调用 Claude Code 或 OpenCode。
+4. 外部 CLI 返回后，Sol 必须重新读取 diff，并独立运行验证；外部 CLI 的“完成”不等于验收通过。
+
+可选外部调用示例（命令和模型由用户自行调整）：
+
+```powershell
+claude -p "按任务简报实现；只修改 owned_files；完成后报告验证结果。"
+opencode run --dir "$PWD" "按任务简报实现；只修改 owned_files；完成后报告验证结果。"
+```
+
+如果当前环境不能安全地非交互调用外部 CLI，Sol 应报告命令和任务简报，让用户手动运行；不得假设订阅或 Provider 可用。
 
 ## 状态机
 

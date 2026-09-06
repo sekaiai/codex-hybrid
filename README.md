@@ -1,11 +1,12 @@
 # Codex Hybrid
 
-用 Codex 的 GPT/Sol 做主控，用不同后端执行子任务：
+用 Codex CLI 的 Sol 做主控，用 Luna 和用户已经配置好的外部 CLI 执行子任务：
 
 | 命令 | 主控 | 子任务后端 | 适合场景 |
 | --- | --- | --- | --- |
-| `gpt-glm` | `gpt-5.6-sol` | `glm_worker`（Z.AI GLM） | 让 GLM 完成主体实现、重构、测试生成 |
-| `gpt-opencode` | `gpt-5.6-sol` | OpenCode CLI（配置为 GLM） | 让 OpenCode 完成主体实现或做第二意见 |
+| 推荐手动模式 | `gpt-5.6-sol` | `luna_worker`，按需调用 Claude Code/OpenCode | 不接管已有订阅和 Provider 配置 |
+| 兼容安装模式 | `gpt-glm` | `glm_worker`（Z.AI GLM） | 保留旧版自动安装和 Provider 管理 |
+| 兼容安装模式 | `gpt-opencode` | OpenCode CLI | 保留旧版独立 OpenCode 配置 |
 
 两条命令的流程相同，只有子任务后端不同：
 
@@ -13,14 +14,43 @@
 用户任务 -> Codex Sol 分析/拆分 -> 执行后端修改 -> Sol 检查/测试/整合
 ```
 
-默认模型：Sol `gpt-5.6-sol`、Luna `gpt-5.6-luna`、GLM `glm-5.2`。
+默认模型：Sol `gpt-5.6-sol`、Luna `gpt-5.6-luna`。GLM 模型由 Claude Code/OpenCode 的现有配置决定。
+
+## 推荐：手动协作模式
+
+如果 Codex CLI、Claude Code 和 OpenCode 已经安装并完成登录，推荐直接使用项目中的 Skill 和 Agent 模板，不运行 `install.sh`，也不让本项目接管 Provider、订阅或 API Key。
+
+协作关系：
+
+```text
+Codex CLI / Sol 主控
+  -> 默认交给 Luna 执行边界明确的任务
+  -> 需要时手动调用 claude 或 opencode
+  -> Sol 重新检查 diff、运行测试并验收
+```
+
+相关文件：
+
+- `skills/hybrid-dev/SKILL.md`：Sol 的路由、文件所有权和验收协议；
+- `agents/sol.toml`：Sol 主控定义；
+- `agents/luna-worker.toml`：Luna 默认执行代理定义。
+
+外部 CLI 的模型和订阅由你自行切换。例如在 Sol 的任务简报确认后执行：
+
+```powershell
+claude -p "按任务简报实现；只修改 owned_files；完成后报告验证结果。"
+opencode run --dir "$PWD" "按任务简报实现；只修改 owned_files；完成后报告验证结果。"
+```
+
+如果你希望让 Codex 自动识别这套协议，可以把 `skills/hybrid-dev` 安装到自己的 Codex skills 目录，并把两个 Agent 模板复制到 Codex 的 agents 目录；不需要填写 GLM Key。
 
 ## 1. 环境要求
 
-- macOS、Linux，或 Windows 10/11 的 WSL2。
+- 推荐手动模式支持 Codex CLI、Claude Code 和 OpenCode 能正常运行的 Windows/macOS/Linux 环境；Windows 不强制要求 WSL。
 - 已安装并登录 Codex CLI。
-- Z.AI Coding Plan API Key。
-- `bash`、`git`、`rg`。
+- Claude Code/OpenCode 的登录和模型配置由用户自行维护。
+
+下面的 `install.sh` 是旧版兼容安装路径，仍要求 Bash、`git`、`rg`，Windows 通常需要 WSL2。
 
 OpenCode CLI 不必预先安装；安装器会自动安装。若本机还没有 Codex CLI：
 
